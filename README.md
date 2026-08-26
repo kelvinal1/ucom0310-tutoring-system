@@ -1,19 +1,17 @@
 # Sistema de gestión de tutorías
 
-Proyecto realizado para modelar un sistema básico de tutorías usando programación orientada a objetos.
+Este proyecto lo hice para la materia de Diseño de Software. La idea fue modelar un sistema básico de tutorías aplicando orientación a objetos, UML, cohesión, bajo acoplamiento y algunos principios SOLID, pero sin volverlo innecesariamente complicado.
 
-La idea principal es separar las responsabilidades para que el sistema no dependa directamente de una base de datos o de un servicio de correo específico.
+## Qué hace
 
-## Qué permite hacer
+- Maneja estudiantes y docentes.
+- Permite registrar horarios disponibles.
+- Crea reservas de tutoría.
+- Confirma, cancela y reprograma reservas.
+- Notifica cuando pasa algo importante con una reserva.
+- Guarda la información por medio de una abstracción, sin amarrar la lógica a una tecnología específica.
 
-- Registrar estudiantes y docentes.
-- Publicar horarios disponibles de docentes.
-- Crear reservas.
-- Confirmar, cancelar y reprogramar reservas.
-- Enviar notificaciones cuando cambia una reserva.
-- Trabajar con repositorios por medio de interfaces.
-
-## Estructura
+## Estructura del proyecto
 
 ```text
 src/main/java/edu/uees/tutorias/
@@ -26,73 +24,74 @@ src/main/java/edu/uees/tutorias/
 
 ## Clases principales
 
-- `User`: clase base para los usuarios.
-- `Student`: representa al estudiante que solicita tutorías.
-- `Teacher`: administra horarios disponibles.
-- `AvailabilitySlot`: representa un horario disponible.
-- `TutoringReservation`: contiene la información y estado de una reserva.
-- `ReservationService`: coordina creación, confirmación, cancelación y reprogramación.
-- `ReservationRepository`: abstracción para guardar reservas.
-- `Notifier`: abstracción para enviar notificaciones.
+- `Usuario`: clase base con los datos comunes de un usuario.
+- `Estudiante`: representa al estudiante que solicita la tutoría.
+- `Docente`: administra sus horarios disponibles.
+- `HorarioDisponible`: representa un horario que puede reservarse.
+- `ReservaTutoria`: relaciona estudiante, docente, horario y estado de la reserva.
+- `ServicioReservas`: coordina la creación, confirmación, cancelación y reprogramación.
+- `RepositorioReservas`: abstracción para guardar reservas.
+- `Notificador`: abstracción para enviar avisos.
 
 ## Decisiones de diseño
 
-Se utilizó herencia solamente entre `User`, `Student` y `Teacher`, porque ambos tipos representan usuarios y comparten información general.
+Usé herencia solo entre `Usuario`, `Estudiante` y `Docente` porque ahí sí tiene sentido. Tanto estudiante como docente son tipos de usuario y comparten datos básicos.
 
-Para los horarios se utilizó composición. Un docente contiene horarios disponibles, pero un horario no es un tipo de docente.
+Para los horarios usé composición. Un `Docente` tiene horarios disponibles, pero un horario no es un tipo de docente, así que herencia ahí no tenía sentido.
 
-También se decidió que `ReservationService` trabaje con las interfaces `ReservationRepository` y `Notifier`. De esta forma se puede cambiar una implementación en memoria por una base de datos, o cambiar la notificación por consola por correo, sin modificar la lógica principal.
+También separé la coordinación de la lógica concreta. `ServicioReservas` trabaja con `RepositorioReservas` y `Notificador`, no con implementaciones amarradas. Eso hace más fácil cambiar la persistencia o la forma de notificar sin dañar la lógica principal.
 
-## Principios SOLID
+## Cohesión y acoplamiento
 
-### SRP - Single Responsibility Principle
+`Docente` se encarga de sus horarios y nada más. `ReservaTutoria` se encarga de cuidar el estado de la reserva y sus cambios. `ServicioReservas` coordina el proceso completo, pero no guarda datos directamente ni manda notificaciones por su cuenta.
 
-Cada clase tiene una responsabilidad específica.
+Eso ayuda a que cada clase tenga una responsabilidad clara y que el sistema no quede demasiado acoplado. Si más adelante se quisiera pasar de memoria a una base de datos real, o cambiar la notificación por consola a correo, el impacto fuerte estaría en nuevas implementaciones y no en toda la lógica.
 
-Por ejemplo, `Teacher` administra sus horarios, `TutoringReservation` protege el estado de la reserva y `ReservationService` coordina el proceso entre objetos.
+## Principios SOLID aplicados
 
-### DIP - Dependency Inversion Principle
+### SRP
 
-`ReservationService` no depende directamente de una base de datos o de una clase concreta de correo.
+Cada clase tiene una responsabilidad concreta. Por ejemplo, `Docente` administra horarios, `ReservaTutoria` controla el estado de la reserva y `ServicioReservas` coordina los casos de uso.
 
-Depende de las interfaces:
+### DIP
 
-- `ReservationRepository`
-- `Notifier`
+`ServicioReservas` no depende directamente de una clase concreta para guardar datos ni para notificar. Depende de `RepositorioReservas` y `Notificador`, que son abstracciones.
 
-Con esto se reduce el acoplamiento.
+### OCP
+
+El diseño también permite crecer sin tener que modificar la coordinación principal. Por ejemplo, se podría crear otro notificador o otro repositorio manteniendo estable `ServicioReservas`.
 
 ## UML
 
-El archivo editable se encuentra en:
+El diagrama editable está en:
 
 ```text
 docs/modelo-clases.puml
 ```
 
-Puede abrirse con PlantUML.
+Ese archivo se puede abrir con PlantUML para verlo como gráfico. El diagrama muestra la herencia entre usuarios, la composición entre `Docente` y `HorarioDisponible`, las asociaciones de `ReservaTutoria` y las dependencias de `ServicioReservas` hacia las abstracciones.
 
-## Compilación
-
-Requisito:
+## Requisitos
 
 - Java 17
 - Maven 3.8 o superior
 
-Ejecutar:
+## Compilación y pruebas
+
+Para compilar:
 
 ```bash
 mvn clean compile
 ```
 
-Para ejecutar las pruebas:
+Para ejecutar pruebas:
 
 ```bash
 mvn clean test
 ```
 
+Las pruebas cubren creación, confirmación, cancelación y reprogramación de reservas, además de una validación de reserva cancelada.
+
 ## Uso de inteligencia artificial
 
-Durante el desarrollo de esta actividad utilicé herramientas de inteligencia artificial como apoyo para redactar documentación, revisar la estructura del proyecto y proponer ejemplos de implementación.
-
-Revisé y adapté el contenido generado, y puedo explicar las clases, relaciones y decisiones presentadas.
+Durante el desarrollo utilicé inteligencia artificial como apoyo para revisar la estructura, ordenar ideas y mejorar la documentación. De todos modos, revisé el contenido, adapté lo necesario y puedo explicar las decisiones, clases y relaciones que aparecen en el proyecto.

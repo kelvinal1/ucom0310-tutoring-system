@@ -2,87 +2,96 @@
 
 skinparam classAttributeIconSize 0
 
-abstract class User {
+abstract class Usuario {
     - id: String
-    - name: String
-    - email: String
+    - nombre: String
+    - correo: String
     + getId(): String
-    + getName(): String
-    + getEmail(): String
+    + getNombre(): String
+    + getCorreo(): String
 }
 
-class Student {
+class Estudiante {
 }
 
-class Teacher {
-    - availableSlots: List<AvailabilitySlot>
-    + addAvailability(slot: AvailabilitySlot): void
-    + removeAvailability(slotId: String): void
-    + isSlotAvailable(slotId: String): boolean
-    + getAvailableSlots(): List<AvailabilitySlot>
+class Docente {
+    - horariosDisponibles: List<HorarioDisponible>
+    + agregarHorario(horario: HorarioDisponible): void
+    + eliminarHorario(horarioId: String): void
+    + estaHorarioDisponible(horarioId: String): boolean
+    + obtenerHorario(horarioId: String): HorarioDisponible
+    + obtenerHorariosDisponibles(): List<HorarioDisponible>
 }
 
-class AvailabilitySlot {
+class HorarioDisponible {
     - id: String
-    - start: LocalDateTime
-    - end: LocalDateTime
-    - available: boolean
-    + reserve(): void
-    + release(): void
-    + isAvailable(): boolean
+    - inicio: LocalDateTime
+    - fin: LocalDateTime
+    - disponible: boolean
+    + reservar(): void
+    + liberar(): void
+    + getId(): String
+    + getInicio(): LocalDateTime
+    + getFin(): LocalDateTime
+    + estaDisponible(): boolean
 }
 
-enum ReservationStatus {
-    PENDING
-    CONFIRMED
-    CANCELLED
+enum EstadoReserva {
+    PENDIENTE
+    CONFIRMADA
+    CANCELADA
 }
 
-class TutoringReservation {
+class ReservaTutoria {
     - id: String
-    - student: Student
-    - teacher: Teacher
-    - slot: AvailabilitySlot
-    - status: ReservationStatus
-    + confirm(): void
-    + cancel(): void
-    + reschedule(newSlot: AvailabilitySlot): void
+    - estudiante: Estudiante
+    - docente: Docente
+    - horario: HorarioDisponible
+    - estado: EstadoReserva
+    + confirmar(): void
+    + cancelar(): void
+    + reprogramar(nuevoHorario: HorarioDisponible): void
+    + getId(): String
+    + getEstudiante(): Estudiante
+    + getDocente(): Docente
+    + getHorario(): HorarioDisponible
+    + getEstado(): EstadoReserva
 }
 
-interface ReservationRepository {
-    + save(reservation: TutoringReservation): void
-    + findById(id: String): Optional<TutoringReservation>
-    + findAll(): List<TutoringReservation>
+interface RepositorioReservas {
+    + guardar(reserva: ReservaTutoria): void
+    + buscarPorId(id: String): Optional<ReservaTutoria>
+    + buscarTodas(): List<ReservaTutoria>
 }
 
-interface Notifier {
-    + notify(user: User, message: String): void
+interface Notificador {
+    + notificar(usuario: Usuario, mensaje: String): void
 }
 
-class InMemoryReservationRepository
-class ConsoleNotifier
+class RepositorioReservasEnMemoria
+class NotificadorConsola
 
-class ReservationService {
-    - repository: ReservationRepository
-    - notifier: Notifier
-    + createReservation(student: Student, teacher: Teacher, slotId: String): TutoringReservation
-    + confirmReservation(reservationId: String): void
-    + cancelReservation(reservationId: String): void
-    + rescheduleReservation(reservationId: String, newSlotId: String): void
+class ServicioReservas {
+    - repositorio: RepositorioReservas
+    - notificador: Notificador
+    + crearReserva(estudiante: Estudiante, docente: Docente, horarioId: String): ReservaTutoria
+    + confirmarReserva(reservaId: String): void
+    + cancelarReserva(reservaId: String): void
+    + reprogramarReserva(reservaId: String, nuevoHorarioId: String): void
 }
 
-User <|-- Student
-User <|-- Teacher
+Usuario <|-- Estudiante
+Usuario <|-- Docente
 
-Teacher "1" *-- "0..*" AvailabilitySlot
-TutoringReservation "1" --> "1" Student
-TutoringReservation "1" --> "1" Teacher
-TutoringReservation "1" --> "1" AvailabilitySlot
+Docente "1" *-- "0..*" HorarioDisponible
+ReservaTutoria "1" --> "1" Estudiante
+ReservaTutoria "1" --> "1" Docente
+ReservaTutoria "1" --> "1" HorarioDisponible
 
-ReservationService --> ReservationRepository
-ReservationService --> Notifier
+ServicioReservas --> RepositorioReservas
+ServicioReservas --> Notificador
 
-ReservationRepository <|.. InMemoryReservationRepository
-Notifier <|.. ConsoleNotifier
+RepositorioReservas <|.. RepositorioReservasEnMemoria
+Notificador <|.. NotificadorConsola
 
 @enduml

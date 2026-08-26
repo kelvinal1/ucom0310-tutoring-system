@@ -1,12 +1,13 @@
 package edu.uees.tutorias.app;
 
-import edu.uees.tutorias.domain.AvailabilitySlot;
-import edu.uees.tutorias.domain.Student;
-import edu.uees.tutorias.domain.Teacher;
-import edu.uees.tutorias.domain.TutoringReservation;
-import edu.uees.tutorias.notification.ConsoleNotifier;
-import edu.uees.tutorias.repository.InMemoryReservationRepository;
-import edu.uees.tutorias.service.ReservationService;
+import edu.uees.tutorias.domain.Docente;
+import edu.uees.tutorias.domain.EstadoReserva;
+import edu.uees.tutorias.domain.Estudiante;
+import edu.uees.tutorias.domain.HorarioDisponible;
+import edu.uees.tutorias.domain.ReservaTutoria;
+import edu.uees.tutorias.notification.NotificadorConsola;
+import edu.uees.tutorias.repository.RepositorioReservasEnMemoria;
+import edu.uees.tutorias.service.ServicioReservas;
 
 import java.time.LocalDateTime;
 
@@ -14,29 +15,29 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Student student = new Student(
+        Estudiante estudiante = new Estudiante(
                 "ST-001",
                 "Kevin Aguilar",
                 "student@uees.edu.ec"
         );
 
-        Teacher teacher = new Teacher(
+        Docente docente = new Docente(
                 "TE-001",
                 "Jaime Sayago",
                 "teacher@uees.edu.ec"
         );
 
 
-        teacher.addAvailability(
-                new AvailabilitySlot(
+        docente.agregarHorario(
+                new HorarioDisponible(
                         "SLOT-001",
                         LocalDateTime.of(2026, 8, 27, 10, 0),
                         LocalDateTime.of(2026, 8, 27, 11, 0)
                 )
         );
 
-        teacher.addAvailability(
-                new AvailabilitySlot(
+        docente.agregarHorario(
+                new HorarioDisponible(
                         "SLOT-002",
                         LocalDateTime.of(2026, 8, 28, 14, 0),
                         LocalDateTime.of(2026, 8, 28, 15, 0)
@@ -44,20 +45,28 @@ public class Main {
         );
 
 
-        ReservationService reservationService = new ReservationService(
-                new InMemoryReservationRepository(),
-                new ConsoleNotifier()
+        ServicioReservas servicioReservas = new ServicioReservas(
+                new RepositorioReservasEnMemoria(),
+                new NotificadorConsola()
         );
 
-        TutoringReservation reservation = reservationService.createReservation(
-                student,
-                teacher,
+        ReservaTutoria reserva = servicioReservas.crearReserva(
+                estudiante,
+                docente,
                 "SLOT-001"
         );
 
-        reservationService.confirmReservation(reservation.getId());
+        servicioReservas.confirmarReserva(reserva.getId());
 
         System.out.println();
-        System.out.println("Final reservation status: " + reservation.getStatus());
+        System.out.println("Estado final de la reserva: " + convertirEstado(reserva.getEstado()));
+    }
+
+    private static String convertirEstado(EstadoReserva estado) {
+        return switch (estado) {
+            case PENDIENTE -> "PENDIENTE";
+            case CONFIRMADA -> "CONFIRMADA";
+            case CANCELADA -> "CANCELADA";
+        };
     }
 }

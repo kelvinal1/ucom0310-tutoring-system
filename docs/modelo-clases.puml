@@ -1,0 +1,88 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+
+abstract class User {
+    - id: String
+    - name: String
+    - email: String
+    + getId(): String
+    + getName(): String
+    + getEmail(): String
+}
+
+class Student {
+}
+
+class Teacher {
+    - availableSlots: List<AvailabilitySlot>
+    + addAvailability(slot: AvailabilitySlot): void
+    + removeAvailability(slotId: String): void
+    + isSlotAvailable(slotId: String): boolean
+    + getAvailableSlots(): List<AvailabilitySlot>
+}
+
+class AvailabilitySlot {
+    - id: String
+    - start: LocalDateTime
+    - end: LocalDateTime
+    - available: boolean
+    + reserve(): void
+    + release(): void
+    + isAvailable(): boolean
+}
+
+enum ReservationStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+}
+
+class TutoringReservation {
+    - id: String
+    - student: Student
+    - teacher: Teacher
+    - slot: AvailabilitySlot
+    - status: ReservationStatus
+    + confirm(): void
+    + cancel(): void
+    + reschedule(newSlot: AvailabilitySlot): void
+}
+
+interface ReservationRepository {
+    + save(reservation: TutoringReservation): void
+    + findById(id: String): Optional<TutoringReservation>
+    + findAll(): List<TutoringReservation>
+}
+
+interface Notifier {
+    + notify(user: User, message: String): void
+}
+
+class InMemoryReservationRepository
+class ConsoleNotifier
+
+class ReservationService {
+    - repository: ReservationRepository
+    - notifier: Notifier
+    + createReservation(student: Student, teacher: Teacher, slotId: String): TutoringReservation
+    + confirmReservation(reservationId: String): void
+    + cancelReservation(reservationId: String): void
+    + rescheduleReservation(reservationId: String, newSlotId: String): void
+}
+
+User <|-- Student
+User <|-- Teacher
+
+Teacher "1" *-- "0..*" AvailabilitySlot
+TutoringReservation "1" --> "1" Student
+TutoringReservation "1" --> "1" Teacher
+TutoringReservation "1" --> "1" AvailabilitySlot
+
+ReservationService --> ReservationRepository
+ReservationService --> Notifier
+
+ReservationRepository <|.. InMemoryReservationRepository
+Notifier <|.. ConsoleNotifier
+
+@enduml
